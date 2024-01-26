@@ -1,9 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Movies.Domain.Entities;
 using Movies.Domain.Models;
 using Movies.Domain.Serilog;
 using Movies.Infastructure.IService;
 using Newtonsoft.Json;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Movies.Core.Services
 {
@@ -11,19 +14,41 @@ namespace Movies.Core.Services
     {
         private MovieContext _context;
         private readonly SeriLogger _seriLogger;
+        private readonly IHostingEnvironment _hostingEnvironment;
         private readonly string directory = "MovieService";
+        private readonly IMapper _mapper;
 
-        public MovieService(MovieContext context, SeriLogger seriLogger)
+
+        public MovieService(MovieContext context, SeriLogger seriLogger, IHostingEnvironment hostingEnvironment, IMapper mapper)
         {
             _context = context;
             _seriLogger = seriLogger;
+            _hostingEnvironment = hostingEnvironment;
+            _mapper = mapper;
         }
 
-        public async Task<WebApiResponse> CreateMovie(Movie model)
+        public async Task<WebApiResponse> CreateMovie(MovieRequest model)
         {
             try
             {
-                _context.Add(model);
+                var mapper = _mapper.Map<Movie>(model);
+                if (model.Photo != null && model.Photo.Length > 0)
+                {
+                    var file = model.Photo;
+
+                    var uploads = Path.Combine(_hostingEnvironment.WebRootPath, "uploads\\img");
+                    if (file.Length > 0)
+                    {
+                        var fileName = Guid.NewGuid().ToString().Replace("-", "") + Path.GetExtension(file.FileName);
+                        using (var fileStream = new FileStream(Path.Combine(uploads, fileName), FileMode.Create))
+                        {
+                            await file.CopyToAsync(fileStream);
+                            mapper.Photo = fileName;
+                        }
+
+                    }
+                }
+                _context.Add(mapper);
                 int response = await _context.SaveChangesAsync();
                 if (response > 0)
                 {
@@ -41,7 +66,6 @@ namespace Movies.Core.Services
             catch (Exception ex)
             {
                 _seriLogger.LogRequest($"{"CreateMovie -- Internal server error occurred" + ex.ToString()}{"|"}{"|"}{DateTime.UtcNow}", false, directory);
-
                 return new WebApiResponse { ResponseCode = APiResponseCode.InternalServerError, StatusCode = APiResponseCode.Failed, Message = ex.ToString() };
             }
         }
@@ -79,20 +103,37 @@ namespace Movies.Core.Services
 
         }
 
-        public async Task<WebApiResponse> EditMovie(Movie model)
+        public async Task<WebApiResponse> EditMovie(MovieUpdateRequest model)
         {
             try
             {
-                _context.Update(model);
+                var mapper = _mapper.Map<Movie>(model);
+                if (model.Photo != null && model.Photo.Length > 0)
+                {
+                    var file = model.Photo;
+
+                    var uploads = Path.Combine(_hostingEnvironment.WebRootPath, "uploads\\img");
+                    if (file.Length > 0)
+                    {
+                        var fileName = Guid.NewGuid().ToString().Replace("-", "") + Path.GetExtension(file.FileName);
+                        using (var fileStream = new FileStream(Path.Combine(uploads, fileName), FileMode.Create))
+                        {
+                            await file.CopyToAsync(fileStream);
+                            mapper.Photo = fileName;
+                        }
+
+                    }
+                }
+                _context.Update(mapper);
                 int response = await _context.SaveChangesAsync();
                 if (response > 0)
                 {
-                    _seriLogger.LogRequest($"{"EditMovie -- Movie with the Id " + model.Id + " was successfully updated"}{"|"}{DateTime.UtcNow}", false, directory);
+                    _seriLogger.LogRequest($"{"EditMovie -- Movie with the Id " + mapper.Id + " was successfully updated"}{"|"}{DateTime.UtcNow}", false, directory);
                     return new WebApiResponse { ResponseCode = APiResponseCode.Successful, StatusCode = APiResponseCode.StatusOk, Message = "successful", Data = model };
                 }
                 else
                 {
-                    _seriLogger.LogRequest($"{"EditMovie -- Unable to update movie with the Id " + model.Id}{"|"}{DateTime.UtcNow}", false, directory);
+                    _seriLogger.LogRequest($"{"EditMovie -- Unable to update movie with the Id " + mapper.Id}{"|"}{DateTime.UtcNow}", false, directory);
 
                     return new WebApiResponse { ResponseCode = APiResponseCode.Failed, StatusCode = APiResponseCode.Failed, Message = "Failed" };
                 }
@@ -125,7 +166,7 @@ namespace Movies.Core.Services
             Movie movie;
             try
             {
-                movie = await _context.FindAsync<Movie>(Id);
+                movie = await _context.Movies.Where(x=>x.Id == Id).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {

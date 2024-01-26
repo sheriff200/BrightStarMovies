@@ -9,8 +9,8 @@ namespace Movies.Infastructure.IService
 {
     public interface IMovieService
     {
-        Task<WebApiResponse> CreateMovie(Movie model);
-        Task<WebApiResponse> EditMovie(Movie model);
+        Task<WebApiResponse> CreateMovie(MovieRequest model);
+        Task<WebApiResponse> EditMovie(MovieUpdateRequest model);
         Task<WebApiResponse> GetAllMovies();
         Task<WebApiResponse> DeleteMovie(int Id);
 

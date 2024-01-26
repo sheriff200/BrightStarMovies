@@ -9,7 +9,8 @@ namespace Movies.Infastructure.IService
 {
     public interface IGenreService
     {
-        Task<WebApiResponse> CreateGenre(Genre model);
+        Task<WebApiResponse> CreateGenre(GenreRequest model);
         Task<WebApiResponse> EditGenre(Genre model);
+        Task<WebApiResponse> GetAllGenres();
     }
 }

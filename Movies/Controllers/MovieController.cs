@@ -17,14 +17,14 @@ namespace Movies.Controllers
 
         [HttpPost]
         [Route("create-movie")]
-        public async Task<WebApiResponse> CreateMovie([FromBody] Movie model)
+        public async Task<WebApiResponse> CreateMovie([FromForm] MovieRequest model)
         {
             return await _movieService.CreateMovie(model);
         }
 
         [HttpPut]
         [Route("update-movie")]
-        public async Task<WebApiResponse> UpdateMovie([FromBody] Movie model)
+        public async Task<WebApiResponse> UpdateMovie([FromForm] MovieUpdateRequest model)
         {
             return await _movieService.EditMovie(model);
         }

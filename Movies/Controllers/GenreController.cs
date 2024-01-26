@@ -19,7 +19,7 @@ namespace Movies.Controllers
 
         [HttpPost]
         [Route("create-genre")]
-        public async Task<WebApiResponse> CreateGenre([FromBody] Genre model)
+        public async Task<WebApiResponse> CreateGenre([FromBody] GenreRequest model)
         {
             return await _genreService.CreateGenre(model);
         }
@@ -29,6 +29,13 @@ namespace Movies.Controllers
         public async Task<WebApiResponse> UpdateMovie([FromBody] Genre model)
         {
             return await _genreService.EditGenre(model);
+        }
+
+        [HttpGet]
+        [Route("get-all-genres")]
+        public async Task<WebApiResponse> GetMovie()
+        {
+            return await _genreService.GetAllGenres();
         }
     }
 }
