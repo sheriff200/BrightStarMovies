@@ -5,7 +5,7 @@ namespace Movies.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class Movie : ControllerBase
+    public class MovieController : ControllerBase
     {
     }
 }

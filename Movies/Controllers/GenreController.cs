@@ -7,5 +7,6 @@ namespace Movies.Controllers
     [ApiController]
     public class GenreController : ControllerBase
     {
+
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Movies.Domain.Models
 {
-    public class Movies
+    public class Movie
     {
         public long Id { get; set; }
         public string Name { get; set; }
